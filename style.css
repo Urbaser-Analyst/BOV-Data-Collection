@@ -34,6 +34,7 @@
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+[hidden]{ display:none !important; }
 body{
   margin:0;
   font-family: var(--font-body);
