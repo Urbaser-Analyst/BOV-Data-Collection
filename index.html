@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+<title>FieldTrack — Collection Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<!-- Ambient background -->
+<div class="bg-orbs" aria-hidden="true">
+  <span class="orb orb-a"></span>
+  <span class="orb orb-b"></span>
+  <span class="orb orb-c"></span>
+</div>
+
+<!-- ===================== LOGIN VIEW ===================== -->
+<main id="view-login" class="view view-login">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 48 48" width="30" height="30" fill="none">
+          <path d="M24 4 L42 14 V34 L24 44 L6 34 V14 Z" stroke="url(#g1)" stroke-width="2.5" fill="none"/>
+          <circle cx="24" cy="24" r="7" fill="url(#g1)"/>
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0" stop-color="#5B4FE9"/>
+              <stop offset="0.55" stop-color="#3E7BFA"/>
+              <stop offset="1" stop-color="#14B8A6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div>
+        <p class="brand-name">FieldTrack</p>
+        <p class="brand-sub">Daily Collection Portal</p>
+      </div>
+    </div>
+
+    <h1 class="login-title">Welcome back, collector.</h1>
+    <p class="login-copy">Sign in with your assigned User ID to view today's Facility / VID list and log Wet, Dry, Sanitary &amp; DHW figures.</p>
+
+    <form id="login-form" autocomplete="off">
+      <label class="field">
+        <span class="field-label">User ID</span>
+        <input type="text" id="userId" name="userId" placeholder="e.g. 109" required />
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <div class="pw-wrap">
+          <input type="password" id="password" name="password" placeholder="••••••••" required />
+          <button type="button" id="togglePw" class="pw-toggle" aria-label="Show password">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7-11-7-11-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </div>
+      </label>
+
+      <button type="submit" id="loginBtn" class="btn-primary">
+        <span class="btn-label">Sign in</span>
+        <span class="btn-spinner" hidden></span>
+      </button>
+
+      <p id="loginError" class="form-error" hidden></p>
+    </form>
+
+    <p class="login-footnote">Session stays active for 12 hours. Assignments &amp; access are managed by your administrator.</p>
+  </div>
+</main>
+
+<!-- ===================== DASHBOARD VIEW ===================== -->
+<div id="view-dashboard" class="view view-dashboard" hidden>
+
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-mark small">
+        <svg viewBox="0 0 48 48" width="22" height="22" fill="none">
+          <path d="M24 4 L42 14 V34 L24 44 L6 34 V14 Z" stroke="url(#g2)" stroke-width="2.5" fill="none"/>
+          <circle cx="24" cy="24" r="7" fill="url(#g2)"/>
+          <defs><linearGradient id="g2" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#5B4FE9"/><stop offset="0.55" stop-color="#3E7BFA"/><stop offset="1" stop-color="#14B8A6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="topbar-title">FieldTrack</span>
+    </div>
+    <div class="topbar-user">
+      <div class="session-pill" id="sessionPill" title="Session time remaining">
+        <span class="dot"></span><span id="sessionTimer">12:00:00</span>
+      </div>
+      <div class="user-chip">
+        <span class="user-avatar" id="userAvatar">U</span>
+        <div class="user-meta">
+          <span id="userName" class="user-name">—</span>
+          <span id="userIdLabel" class="user-id">ID —</span>
+        </div>
+      </div>
+      <button id="logoutBtn" class="btn-ghost">Log out</button>
+    </div>
+  </header>
+
+  <main class="dash-content">
+
+    <!-- KPI SECTION -->
+    <section class="kpi-grid" id="kpiGrid" aria-label="Summary">
+      <div class="kpi-card kpi-total">
+        <span class="kpi-label">Total Assigned</span>
+        <span class="kpi-value" id="kpiTotal">0</span>
+        <span class="kpi-icon" aria-hidden="true">◎</span>
+      </div>
+      <div class="kpi-card kpi-done">
+        <span class="kpi-label">Completed</span>
+        <span class="kpi-value" id="kpiDone">0</span>
+        <span class="kpi-icon" aria-hidden="true">✓</span>
+      </div>
+      <div class="kpi-card kpi-pending">
+        <span class="kpi-label">Pending</span>
+        <span class="kpi-value" id="kpiPending">0</span>
+        <span class="kpi-icon" aria-hidden="true">◷</span>
+      </div>
+      <div class="kpi-card kpi-progress">
+        <span class="kpi-label">Progress</span>
+        <div class="progress-ring-wrap">
+          <svg viewBox="0 0 64 64" class="progress-ring">
+            <circle cx="32" cy="32" r="27" class="ring-track"/>
+            <circle cx="32" cy="32" r="27" class="ring-fill" id="ringFill"/>
+          </svg>
+          <span class="progress-ring-value" id="kpiPercent">0%</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-totals">
+        <span class="kpi-label">Waste Logged (Wet / Dry / San / DHW)</span>
+        <span class="kpi-value kpi-value-sm" id="kpiWasteTotals">0 / 0 / 0 / 0</span>
+        <span class="kpi-icon" aria-hidden="true">⚖</span>
+      </div>
+    </section>
+
+    <!-- ENTRY SECTION -->
+    <section class="panel" id="entryPanel">
+      <div class="panel-header">
+        <div>
+          <h2>Your Assignments</h2>
+          <p class="panel-sub">Fill each row's Wet / Dry / Sanitary / DHW figures, then submit one at a time or all together.</p>
+        </div>
+        <div class="panel-actions">
+          <input type="search" id="searchBox" placeholder="Search facility, VID, ward…" class="search-input" />
+          <button id="submitAllBtn" class="btn-primary btn-compact">
+            <span class="btn-label">Submit all filled</span>
+            <span class="btn-spinner" hidden></span>
+          </button>
+        </div>
+      </div>
+
+      <div id="assignmentTableWrap" class="table-wrap">
+        <table class="assign-table" id="assignTable">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Facility</th>
+              <th>Shift</th>
+              <th>Zone</th>
+              <th>Ward</th>
+              <th>VID</th>
+              <th>Wet</th>
+              <th>Dry</th>
+              <th>Sanitary</th>
+              <th>DHW</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="assignTableBody">
+            <!-- rows injected by app.js -->
+          </tbody>
+        </table>
+        <div id="emptyState" class="empty-state" hidden>
+          <p>No assignments found for your User ID.</p>
+          <p class="empty-sub">Contact your administrator if this looks wrong.</p>
+        </div>
+        <div id="loadingState" class="loading-state">
+          <span class="spinner-lg"></span>
+          <p>Loading your assignments…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPLETED ENTRIES SECTION -->
+    <section class="panel" id="completedPanel" hidden>
+      <div class="panel-header">
+        <div>
+          <h2>Completed Entries</h2>
+          <p class="panel-sub">Already submitted — tap Edit to correct any value.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="assign-table completed-table" id="completedTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>Facility</th>
+              <th>Shift</th>
+              <th>Zone</th>
+              <th>Ward</th>
+              <th>VID</th>
+              <th>Wet</th>
+              <th>Dry</th>
+              <th>Sanitary</th>
+              <th>DHW</th>
+            </tr>
+          </thead>
+          <tbody id="completedTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" hidden></div>
+
+<script src="assets/config.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
