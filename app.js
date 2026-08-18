@@ -27,14 +27,39 @@ const viewDashboard = $('view-dashboard');
    Apps Script web apps.
    ============================================================ */
 async function api(action, payload) {
+  if (typeof API_URL !== 'string' || !API_URL || API_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
+    throw new Error('CONFIG_MISSING: assets/config.js still has the placeholder API_URL — paste your Apps Script /exec URL there.');
+  }
+
   const body = Object.assign({ action }, payload || {});
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) throw new Error('Network error (' + res.status + ')');
-  const json = await res.json();
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+  } catch (networkErr) {
+    console.error('[FieldTrack] fetch failed', networkErr);
+    throw new Error('Could not reach the server. This is usually CORS, an offline connection, or an incorrect API_URL.');
+  }
+
+  const rawText = await res.text();
+  console.log('[FieldTrack] API', action, '→ status', res.status, rawText.slice(0, 300));
+
+  let json;
+  try {
+    json = JSON.parse(rawText);
+  } catch (parseErr) {
+    // Apps Script returned HTML, not JSON — almost always a deployment/access issue.
+    console.error('[FieldTrack] Non-JSON response for action', action, rawText.slice(0, 500));
+    if (rawText.indexOf('accounts.google.com') !== -1 || rawText.indexOf('Sign in') !== -1) {
+      throw new Error('The Apps Script deployment is asking for Google sign-in. Redeploy with "Who has access: Anyone".');
+    }
+    throw new Error('Server returned an unexpected response (not JSON). Check the deployment is published and the URL ends in /exec.');
+  }
+
+  if (!res.ok && !json) throw new Error('Network error (' + res.status + ')');
   return json;
 }
 
@@ -110,17 +135,27 @@ function tickSession() {
    VIEW SWITCHING
    ============================================================ */
 function showDashboard() {
-  viewLogin.hidden = true;
-  viewDashboard.hidden = false;
-  $('userName').textContent = state.employeeName || state.userId;
-  $('userIdLabel').textContent = 'ID ' + state.userId;
-  $('userAvatar').textContent = String(state.employeeName || state.userId).trim().charAt(0).toUpperCase();
-  startSessionTimer();
-  loadAssignments();
+  console.log('[FieldTrack] showDashboard for', state.userId);
+  viewLogin.style.display = 'none';
+  viewLogin.setAttribute('hidden', '');
+  viewDashboard.style.display = '';
+  viewDashboard.removeAttribute('hidden');
+  try {
+    $('userName').textContent = state.employeeName || state.userId;
+    $('userIdLabel').textContent = 'ID ' + state.userId;
+    $('userAvatar').textContent = String(state.employeeName || state.userId).trim().charAt(0).toUpperCase();
+    startSessionTimer();
+    loadAssignments();
+  } catch (ex) {
+    console.error('[FieldTrack] error rendering dashboard', ex);
+    toast('Logged in, but the dashboard failed to render. Check console for details.', 'error');
+  }
 }
 function showLogin() {
-  viewDashboard.hidden = true;
-  viewLogin.hidden = false;
+  viewDashboard.style.display = 'none';
+  viewDashboard.setAttribute('hidden', '');
+  viewLogin.style.display = '';
+  viewLogin.removeAttribute('hidden');
   $('userId').focus();
 }
 
@@ -143,8 +178,9 @@ $('login-form').addEventListener('submit', async (e) => {
 
   try {
     const res = await api('login', { userId, password });
-    if (!res.success) {
-      err.textContent = res.error || 'Login failed.';
+    console.log('[FieldTrack] login response', res);
+    if (!res || !res.success) {
+      err.textContent = (res && res.error) || 'Login failed.';
       err.hidden = false;
       setBtnLoading(btn, false);
       return;
@@ -158,7 +194,8 @@ $('login-form').addEventListener('submit', async (e) => {
     setBtnLoading(btn, false);
     showDashboard();
   } catch (ex) {
-    err.textContent = 'Could not reach the server. Check your connection and the API URL in config.js.';
+    console.error('[FieldTrack] login threw', ex);
+    err.textContent = ex && ex.message ? ex.message : 'Could not reach the server.';
     err.hidden = false;
     setBtnLoading(btn, false);
   }
@@ -437,6 +474,10 @@ $('submitAllBtn').addEventListener('click', () => {
 $('searchBox').addEventListener('input', (e) => {
   state.searchTerm = e.target.value.trim();
   renderAssignTable();
+});
+
+window.addEventListener('error', (e) => {
+  console.error('[FieldTrack] uncaught error', e.error || e.message);
 });
 
 /* ============================================================
