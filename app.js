@@ -163,13 +163,14 @@ function showDashboard() {
     );
   }
 }
+
 function showLogin() {
-  viewDashboard.style.display = 'none';
-  viewDashboard.setAttribute('hidden', '');
-  viewLogin.style.display = '';
-  viewLogin.removeAttribute('hidden');
+  viewDashboard.hidden = true;
+  viewLogin.hidden = false;
+
   $('userId').focus();
 }
+
 
 /* ============================================================
    LOGIN
