@@ -137,19 +137,30 @@ function tickSession() {
    ============================================================ */
 function showDashboard() {
   console.log('[FieldTrack] showDashboard for', state.userId);
-  viewLogin.style.display = 'none';
-  viewLogin.setAttribute('hidden', '');
-  viewDashboard.style.display = '';
-  viewDashboard.removeAttribute('hidden');
+
+  // Switch views using the hidden attribute
+  viewLogin.hidden = true;
+  viewDashboard.hidden = false;
+
   try {
     $('userName').textContent = state.employeeName || state.userId;
     $('userIdLabel').textContent = 'ID ' + state.userId;
-    $('userAvatar').textContent = String(state.employeeName || state.userId).trim().charAt(0).toUpperCase();
+
+    $('userAvatar').textContent =
+      String(state.employeeName || state.userId)
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+
     startSessionTimer();
     loadAssignments();
+
   } catch (ex) {
     console.error('[FieldTrack] error rendering dashboard', ex);
-    toast('Logged in, but the dashboard failed to render. Check console for details.', 'error');
+    toast(
+      'Logged in, but the dashboard failed to render. Check console for details.',
+      'error'
+    );
   }
 }
 function showLogin() {
